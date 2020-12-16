@@ -41,6 +41,8 @@ export class DjangoTranspiler implements ITranspiler {
             variable = this.context.getScopedVariable(path);
           }
 
+          variable = variable.replace(/-/g, '_');
+
           if (path.type === 'PathExpression') {
             this.buffer.push(`{{ ${variable}${escaped} }}`);
           } else if (path.type === 'Literal') {
@@ -205,7 +207,7 @@ export class DjangoTranspiler implements ITranspiler {
               ' with ' +
               statement.hash.pairs
                 .map((pair: hbs.AST.HashPair) => {
-                  const key = `${pair.key}=`;
+                  const key = `${pair.key}=`.replace(/-/g, '_');
                   if (pair.value.type === 'PathExpression') {
                     return `${key}${this.context.getScopedVariable(
                       <hbs.AST.PathExpression>pair.value,
@@ -218,7 +220,9 @@ export class DjangoTranspiler implements ITranspiler {
                     return `${key}${(<hbs.AST.NumberLiteral>pair.value).value}`;
                   }
                   if (pair.value.type === 'BooleanLiteral') {
-                    return `${key}${(<hbs.AST.BooleanLiteral>pair.value).value}`;
+                    const valueStr = `${(<hbs.AST.BooleanLiteral>pair.value).value}`;
+                    const valueStrCapitalized = valueStr[0].toUpperCase() + valueStr.substr(1);
+                    return `${key}${valueStrCapitalized}`;
                   }
                   return '';
                 })
